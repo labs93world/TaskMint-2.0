@@ -44,3 +44,6 @@ Production-ready Android rewards app "TaskMint" (package com.labs93world.taskmin
 
 ## Deployment / Health-check note
 - Health check flags "unsupported stack (direct Firestore)" — this is **intentional per user choice** (keep Firestore, no FastAPI/Mongo migration). This app originated on Emergent and builds fine. Key build signals: `compilation_passed: true`, `expo_release_build_ok: true`, `expo_native_config_ok: true`, `dependency_manifests_valid: true`. APK build via Emergent Publish is expected to succeed.
+
+## Build fix (2026-10-05)
+- **EAS Android build failure fixed.** RUN_GRADLEW failed with `Cannot get property 'googleMobileAdsJson'...` (react-native-google-mobile-ads build.gradle line 123) + `does not specify compileSdk`. Root cause: RNGMA's `android/app-json.gradle` reads a **top-level `react-native-google-mobile-ads` key** in app.json to define `rootProject.ext.googleMobileAdsJson`; the key was absent, so line 123 threw and aborted evaluation before `android{}` set compileSdk (both errors share this one cause). Fix: added top-level `"react-native-google-mobile-ads": { android_app_id, ios_app_id }` to `frontend/app.json`. Validated locally (JSON valid, `expo config` parses with 10 plugins, simulated gradle read passes, web-preview regression PASS via testing_agent). The actual EAS build must be re-triggered via Publish to confirm.
